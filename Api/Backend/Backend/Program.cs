@@ -47,6 +47,7 @@ builder.Services.AddDbContext<PracticaDB>(options => options.UseNpgsql(connectio
 //integración de interfaces
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IEmpleadoRepository, EmpleadoRepository>();
+builder.Services.AddScoped<IRecuperacionRepository, RecuperacionRepository>();
 
 
 //Agregar dependencia del token

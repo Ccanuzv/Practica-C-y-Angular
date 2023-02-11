@@ -58,6 +58,28 @@ namespace Backend.Migrations
                     b.ToTable("Empleados");
                 });
 
+            modelBuilder.Entity("Backend.Modelo.Entity.RecuperacionContrasenia", b =>
+                {
+                    b.Property<string>("RecuperacionId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("RecuperacionEstado")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("RecuperacionFechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecuperacionUsuarioId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("RecuperacionId");
+
+                    b.HasIndex("RecuperacionUsuarioId");
+
+                    b.ToTable("Recuperaciones");
+                });
+
             modelBuilder.Entity("Backend.Modelo.Entity.Usuario", b =>
                 {
                     b.Property<string>("UsuarioId")
@@ -88,6 +110,17 @@ namespace Backend.Migrations
                     b.HasOne("Backend.Modelo.Entity.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("EmpleadoUsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Backend.Modelo.Entity.RecuperacionContrasenia", b =>
+                {
+                    b.HasOne("Backend.Modelo.Entity.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("RecuperacionUsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

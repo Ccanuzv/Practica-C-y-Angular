@@ -12,6 +12,7 @@ namespace Backend.Data
 
         public DbSet<Usuario> Usuarios => Set<Usuario>();
         public DbSet<Empleado> Empleados => Set<Empleado>();
+        public DbSet<RecuperacionContrasenia> Recuperaciones => Set<RecuperacionContrasenia>();
 
     }
 }

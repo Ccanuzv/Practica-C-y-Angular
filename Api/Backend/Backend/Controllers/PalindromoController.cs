@@ -14,7 +14,6 @@ namespace Backend.Controllers
         {
             try
             {
-                //var texto = texto.Split(" ", "-");
                 var result = ListPalindrome(texto).OrderByDescending(o => o.Length);
 
 
@@ -41,7 +40,7 @@ namespace Backend.Controllers
                                 (int)(index + palindromeNearestElementRadius + 1) -
                                 (int)(index - palindromeNearestElementRadius));
 
-                    if (element.Length != 1)
+                    if (element.Length != 1 )
                     {
                         ListPalindrome.Add(element);
                     }

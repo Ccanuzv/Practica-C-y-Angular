@@ -8,6 +8,11 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
+using System.Net;
+using MimeKit;
+using MimeKit.Text;
+using System.Security.Cryptography;
 
 namespace Backend.Controllers
 {
@@ -16,6 +21,7 @@ namespace Backend.Controllers
     public class UsuarioController : Controller
     {
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IRecuperacionRepository _recuperacionRepository;
         private readonly ILogger<UsuarioController> _logger;
         private readonly IConfiguration _config;
         private readonly PracticaDB _context;
@@ -23,11 +29,13 @@ namespace Backend.Controllers
         public UsuarioController(IUsuarioRepository usuarioRepository,
                                  ILogger<UsuarioController> logger,
                                  IConfiguration config,
+                                 IRecuperacionRepository recuperacionRepository,
                                  PracticaDB context)
         {
             _usuarioRepository = usuarioRepository;
             _logger = logger;
             _config = config;
+            _recuperacionRepository = recuperacionRepository;
             _context = context;
         }
 
@@ -83,7 +91,54 @@ namespace Backend.Controllers
             return Ok(token);
         }
 
-        private OkObjectResult CreacionTokenYClaims(string usuarioId, string usuarioNombre)
+        [HttpPost("Email")]
+        public ActionResult PostEmail(string email)
+        {
+            var UsuarioEmail = _usuarioRepository.GetAll().Where(w => w.UsuarioEmail.Equals(email)).FirstOrDefault();
+
+            if (UsuarioEmail != null)
+            {
+                RecuperacionContrasenia recu = new RecuperacionContrasenia();
+
+                recu.RecuperacionId = UiddGenetor.uidd();
+                recu.RecuperacionUsuarioId = UsuarioEmail.UsuarioId;
+                recu.RecuperacionEstado = true;
+                recu.RecuperacionFechaCreacion = DateTime.Now;
+                _recuperacionRepository.Create(recu);
+
+                //string url = "127.0.0.1:4200/recuperacion?id=" + recu.RecuperacionId;
+                string url = "http://127.0.0.1:4200";
+
+                var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddUserSecrets<Conexion>().Build();
+                string correo = builder.GetConnectionString("correo").ToString();
+                string pass = builder.GetConnectionString("pass").ToString();
+
+                SmtpClient cliente = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(correo, pass)
+                };
+                var email2 = new MailMessage(correo, UsuarioEmail.UsuarioEmail);
+                email2.Subject = "Recuperación de Contraseña";
+                //email2.Body = "Ingresa al siguiente para continuar con el proceso de recuperación de contraseña ";
+
+                email2.Body = string.Format( "<html><body>" +
+                                    "<p>Hi 👋,"+ UsuarioEmail.UsuarioNombre +"</p>" +
+                                    "<p>Este correo te ayudará en el proceso recuperación de contraseña:</p>" +
+                                    "<p>Has click aqui: <a href='{0}'>LINK</a> bye.</p>" +
+                               "</body></html>", url);
+                email2.IsBodyHtml = true;
+                cliente.Send(email2);
+
+
+            }
+
+            return Ok(1);
+        }
+
+            private OkObjectResult CreacionTokenYClaims(string usuarioId, string usuarioNombre)
         {
             //Creacion de claims unico para el token
             var claims = new List<Claim>
